@@ -13,17 +13,20 @@ contract Raffle {
     error Raffle__SendMoreEthToEnterRaffle();
     //i_ stands for immutable, signifying that the varaible cnnot be changed
     uint256 private immutable i_entranceFee;
+    // @dev The duration of the lottery in seconds
+    uint256 private immutable i_interval;
     address payable[] private s_players;
-
+    uint256 private s_lastTimeStamp;
     /**Events */
 
     event RaffleEntered(address indexed player);
 
-    constructor(uint256 entranceFee) {
+    constructor(uint256 entranceFee, uint256 interval) {
         i_entranceFee = entranceFee;
+        i_interval = interval;
     }
 
-    function enterRaffle() public payable {
+    function enterRaffle() external payable {
         if (msg.value < i_entranceFee) {
             revert Raffle__SendMoreEthToEnterRaffle();
         }
@@ -33,7 +36,13 @@ contract Raffle {
         emit RaffleEntered(msg.sender);
     }
 
-    function pickWinner() public {}
+    //1. Get a random number
+    //2. Use random number to pick a player
+    //3. Be autimatically called
+    function pickWinner() external {
+        // check to see if enough time has passed
+        if ((block.timestamp - s_lastTimeStamp) < i_interval) {}
+    }
 
     /**Getter Functions */
 
