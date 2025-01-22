@@ -47,6 +47,7 @@ contract Raffle is VRFConsumerBaseV2Plus {
      * Events
      */
     event RaffleEntered(address indexed player);
+    event WinnerPicked(address indexed winner);
 
     //When you inherit a contract that has  a constructor with arguments, you have to add the contract's constructor to the child's contract constructor
 
@@ -84,14 +85,41 @@ contract Raffle is VRFConsumerBaseV2Plus {
         emit RaffleEntered(msg.sender);
     }
 
+    //When should the winner be picked
+    /**
+     * @dev This is the function that the chainlink node wil call to see if the lottery is ready to have a winner picked.
+     * The following should be true in order fo upkeepNeeded to be true
+     * 1. The time interval has passed between raffle runs
+     * 2.  The lottery is open
+     * 3. The contract has Eth
+     * 4. Implicitly, your subscription has LINK
+     * @param - ignored
+     * @return upkeepNeeded - true if it's time to restart the lottery
+     * @return - ignored
+     */
+
+    function checkUpKeep(
+        bytes memory /* checData */
+    ) public view returns (bool upkeepNeeded, bytes memory /* performData */) {
+        bool timeHasPssed = ((block.timestamp - s_lastTimeStamp) >= i_interval);
+        bool isOpen = s_rafflestate == RaffleState.OPEN;
+        bool hasBalance = address(this).balance > 0;
+        bool hasPlayers = s_players.length > 0;
+        upkeepNeeded = timeHasPssed && isOpen && hasBalance && hasPlayers;
+        return (upkeepNeeded, "");
+    }
+
     //1. Get a random number
     //2. Use random number to pick a player
-    //3. Be autimatically called
-    function pickWinner() external {
+    //3. Be automatically called using Chainlink Automation
+    function performUpkeep(bytes calldata /* performData */) external {
         // check to see if enough time has passed
-        if ((block.timestamp - s_lastTimeStamp) < i_interval) {
+        (bool upkeedNeeded, ) = checkUpKeep("");
+        if (!upkeedNeeded) {
             revert();
         }
+
+        s_rafflestate = RaffleState.CALCULATING;
         //Get arandom number from cahinlink after the time has passed
         //Chainlink vrf is used to achieve this
 
@@ -111,14 +139,23 @@ contract Raffle is VRFConsumerBaseV2Plus {
         uint256 requestId = s_vrfCoordinator.requestRandomWords(request);
     }
 
+    //CEI: Chcecks Effects, Interactons
     //This fulfillrandom words is the callback function that returns the random words, it has to be in this contract compulsoriyly since we've inherited the VRf contract which is an abstract contract
     function fulfillRandomWords(
         uint256 requestId,
         uint256[] calldata randomWords
     ) internal override {
+        //Checks. More Gas efficient
+        //Effect (Internal Contract State)
         uint256 indexOfWinner = randomWords[0] % s_players.length;
         address payable recentWinner = s_players[indexOfWinner];
         s_recentWinner = recentWinner;
+        s_rafflestate = RaffleState.OPEN;
+        s_players = new address payable[](0);
+        s_lastTimeStamp = block.timestamp;
+        emit WinnerPicked(s_recentWinner);
+
+        // Interactions (External conrtract interctions)
         //Give the winner the balacne of the contract
         (bool success, ) = recentWinner.call{value: address(this).balance}("");
         if (!success) {
