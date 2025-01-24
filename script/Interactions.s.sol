@@ -25,7 +25,7 @@ contract CreateSubscription is Script {
         uint256 subId = VRFCoordinatorV2_5Mock(vrfCoordinator)
             .createSubscription();
 
-        vm.startBroadcast();
+        vm.stopBroadcast();
 
         return (subId, vrfCoordinator);
     }
