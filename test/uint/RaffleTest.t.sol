@@ -10,11 +10,29 @@ import {Raffle} from "src/Raffle.sol";
 contract RaffleTest is Test {
     Raffle public raffle;
     HelperConfig public helperconfig;
+    uint256 entranceFee;
+    uint256 interval;
+    address vrfCoordinator;
+    bytes32 gasLane;
+    uint32 callbackGasLimit;
+    uint256 subscriptionId;
 
-    address public
+    address public PLAYER = makeAddr("player");
+    uint256 public constant STATING_PLAYER_BLANCE = 10 ether;
 
     function setUp() external {
-        DeployRaffle deployer = new DeployDaffle();
+        DeployRaffle deployer = new DeployRaffle();
         (raffle, helperconfig) = deployer.deployContract();
+        HelperConfig.NetworkConfig memory config = helperconfig.getConfig();
+        entranceFee = config.entranceFee;
+        interval = config.interval;
+        vrfCoordinator = config.vrfCoordinator;
+        gasLane = config.gasLane;
+        callbackGasLimit = config.callbackGasLimit;
+        subscriptionId = config.subscriptionId;
+    }
+
+    function testRaffleInitializesInOpenState() public view {
+        assert(raffle.getRaffleState() == Raffle.RaffleState.OPEN);
     }
 }

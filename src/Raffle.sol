@@ -145,13 +145,13 @@ contract Raffle is VRFConsumerBaseV2Plus {
                 )
             });
 
-        uint256 requestId = s_vrfCoordinator.requestRandomWords(request);
+        s_vrfCoordinator.requestRandomWords(request);
     }
 
     //CEI: Chcecks Effects, Interactons
     //This fulfillrandom words is the callback function that returns the random words, it has to be in this contract compulsoriyly since we've inherited the VRf contract which is an abstract contract
     function fulfillRandomWords(
-        uint256 requestId,
+        uint256 /*requestId*/,
         uint256[] calldata randomWords
     ) internal override {
         //Checks. More Gas efficient
@@ -177,5 +177,10 @@ contract Raffle is VRFConsumerBaseV2Plus {
      */
     function getEntrancefee() external view returns (uint256) {
         return i_entranceFee;
+    }
+
+    /**Getter functions */
+    function getRaffleState() external view returns (RaffleState) {
+        return s_rafflestate;
     }
 }
