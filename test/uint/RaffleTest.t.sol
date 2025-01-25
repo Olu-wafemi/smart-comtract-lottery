@@ -130,4 +130,16 @@ contract RaffleTest is Test {
         (bool upkeepNeeded, ) = raffle.checkUpKeep("");
         assert(upkeepNeeded);
     }
+
+    //Peform Upkeep Tests
+
+    function testPerformUpkeepCanOnlyRunIfCheckUpkeepIsTrue() public {
+        vm.prank(PLAYER);
+        raffle.enterRaffle{value: entranceFee}();
+
+        vm.warp(block.timestamp);
+        vm.roll(block.number + 1);
+
+        raffle.performUpkeep("");
+    }
 }
