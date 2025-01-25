@@ -42,6 +42,9 @@ contract RaffleTest is Test {
     }
 
     function testRafflerevertswhenyoudontpayenough() public {
+        //The vm.prankintercepts the execution of the next transaction and overrides the msg.sender value for that transaction or call with the address you specified.
+        //So here vm.prank changes the msg.sender address to a random address, so it will be different from msg.sender that created the contract
+
         vm.prank(PLAYER);
 
         vm.expectRevert(Raffle.Raffle__SendMoreEthToEnterRaffle.selector);
@@ -84,5 +87,15 @@ contract RaffleTest is Test {
         vm.prank(PLAYER);
 
         raffle.enterRaffle{value: entranceFee}();
+    }
+
+    function testCheckUpkeepReturnsFalseIfNoBalance() public {
+        vm.warp(block.timestamp + interval + 1);
+        vm.roll(block.number + 1);
+
+        vm.prank(PLAYER);
+        (bool upkeepNeeded, ) = raffle.checkUpKeep("");
+
+        assert(!upkeepNeeded);
     }
 }
