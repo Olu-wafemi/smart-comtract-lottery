@@ -175,6 +175,8 @@ contract RaffleTest is Test {
         Vm.Log[] memory entries = vm.getRecordedLogs();
 
         bytes32 requestId = entries[1].topics[1];
+
+        //console.log(requestId);
         //assert
         Raffle.RaffleState raffleState = raffle.getRaffleState();
         assert(uint256(requestId) > 0);
