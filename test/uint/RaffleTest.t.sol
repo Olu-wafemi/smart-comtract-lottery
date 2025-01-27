@@ -184,10 +184,9 @@ contract RaffleTest is Test {
         assert(uint256(raffleState) == 1);
     }
 
-    function testFulFillRandomWordsCanOnlyBeCallAfterPerformUpkeep()
-        public
-        raffleEntered
-    {
+    function testFulFillRandomWordsCanOnlyBeCallAfterPerformUpkeep(
+        uint256 randonRequestId
+    ) public rafflEntered {
         vm.expectRevert(
             VRFCoordinatorV2_5Mock
                 .VRFCoordinatorV2_5Mock__InvalidRequest
