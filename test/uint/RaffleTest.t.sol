@@ -192,8 +192,10 @@ contract RaffleTest is Test {
                 .VRFCoordinatorV2_5Mock__InvalidRequest
                 .seletor
         );
+
+        //Fuzz testing- Readmore
         VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(
-            0,
+            randonRequestId,
             address(raffle)
         );
     }
