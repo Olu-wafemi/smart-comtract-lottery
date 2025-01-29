@@ -165,7 +165,18 @@ contract RaffleTest is Test {
         raffle.performUpkeep("");
     }
 
-    function testPerfomUpkeepUpdateRaffleStateAndEmitsRequestId() public {
+    modifier raffleEntered() {
+        vm.prank(PLAYER);
+        raffle.enterRaffle{value: entranceFee}();
+        vm.warp(block.timestamp + interval + 1);
+        vm.roll(block.number + 1);
+        _;
+    }
+
+    function testPerfomUpkeepUpdateRaffleStateAndEmitsRequestId()
+        public
+        raffleEntered
+    {
         vm.prank(PLAYER);
         raffle.enterRaffle{value: entranceFee}();
         vm.warp(block.timestamp + interval + 1);
@@ -186,7 +197,7 @@ contract RaffleTest is Test {
 
     function testFulFillRandomWordsCanOnlyBeCallAfterPerformUpkeep(
         uint256 randonRequestId
-    ) public rafflEntered {
+    ) public raffleEntered {
         vm.expectRevert(
             VRFCoordinatorV2_5Mock
                 .VRFCoordinatorV2_5Mock__InvalidRequest
@@ -198,5 +209,24 @@ contract RaffleTest is Test {
             randonRequestId,
             address(raffle)
         );
+    }
+
+    function testFulfillrRandomWordsPicksAwinnwrResetsAndSendsMoney()
+        public
+        raffleEntered
+    {
+        uint256 additionalEntrants = 3; //4 total
+        uint256 startingIndex = 1;
+
+        for (
+            uint256 i = startingIndex;
+            i < startingIndex + additionalEntrants;
+            i++
+        ) {
+            address newPlayer = address(uint160(i));
+            hoax(newPlayer, 1 ether);
+            raffle.enterRaffle{value: entranceFee()}();
+            uint256 startingTimeStamp = raffle.getLastTimeStamp();
+        }
     }
 }
